@@ -14,7 +14,7 @@ const Logo = forwardRef((props, ref) => {
       onMouseLeave={() => setCursorVariant("default")}
       {...props}
     >
-      <ShinyText text="TryBear" disabled={false} speed={10} />
+      <ShinyText text="TryBear" disabled={false} speed={3} />
     </h1>
   );
 });

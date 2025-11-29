@@ -1,4 +1,4 @@
-import React, { useRef, useContext } from "react";
+import React, { useRef, useContext, useState, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useNavigate } from "react-router-dom";
@@ -10,8 +10,33 @@ import Magnet from "./Magnet";
 const LandingContent = () => {
   const containerRef = useRef(null);
   const { setCursorVariant } = useCursor();
-  const { t } = useContext(LanguageContext);
+  const { t, language } = useContext(LanguageContext);
   const navigate = useNavigate();
+  const [landingData, setLandingData] = useState(null);
+
+  useEffect(() => {
+    const fetchLandingData = async () => {
+      try {
+        // Use relative path to leverage Vite proxy and avoid CORS
+        const response = await fetch("/api/v1/landing", {
+          headers: {
+            accept: "application/json",
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Landing data fetched successfully:", data);
+          setLandingData(data);
+        } else {
+          console.error("Failed to fetch landing data:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching landing data:", error);
+      }
+    };
+
+    fetchLandingData();
+  }, []);
 
   useGSAP(
     () => {
@@ -39,7 +64,11 @@ const LandingContent = () => {
         onMouseLeave={() => setCursorVariant("default")}
       >
         <BlurText
-          text={t("landing_title")}
+          text={
+            language === "en"
+              ? landingData?.title_en || t("landing_title")
+              : landingData?.title || t("landing_title")
+          }
           className="block"
           animateBy="words"
           direction="top"
@@ -52,7 +81,11 @@ const LandingContent = () => {
         onMouseLeave={() => setCursorVariant("default")}
       >
         <BlurText
-          text={t("landing_subtitle")}
+          text={
+            language === "en"
+              ? landingData?.subtitle_en || t("landing_subtitle")
+              : landingData?.subtitle || t("landing_subtitle")
+          }
           className="block"
           animateBy="words"
           direction="top"

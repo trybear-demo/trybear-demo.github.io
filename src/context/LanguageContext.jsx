@@ -48,16 +48,26 @@ const translations = {
     contact_subtitle:
       "Ready to start your next project? Contact us to see how we can help you grow. We are always eager to hear new ideas.",
     login: "Login",
+    load_more: "Load More",
+    loading_more: "Loading...",
     // Login Page
     login_welcome: "Welcome",
     login_description: "Please enter your details.",
     email_placeholder: "Email address",
+    username_placeholder: "Username",
     password_placeholder: "Password",
     forgot_password: "Forgot password?",
     sign_in: "Sign In",
     no_account: "Don't have an account?",
     sign_up: "Sign up",
     back: "Back",
+    // Register Page
+    register_welcome: "Create Account",
+    register_description: "Please fill in your details.",
+    full_name_placeholder: "Full Name",
+    phone_placeholder: "Phone Number",
+    confirm_password_placeholder: "Confirm Password",
+    already_have_account: "Already have an account?",
   },
   fa: {
     welcome_message: "به ترای‌بر خوش آمدید",
@@ -98,16 +108,26 @@ const translations = {
     contact_subtitle:
       "آماده‌اید پروژه بعدی خود را شروع کنید؟ با ما تماس بگیرید تا ببینیم چگونه می‌توانیم به رشد شما کمک کنیم. ما همیشه مشتاق شنیدن ایده‌های جدید هستیم.",
     login: "ورود",
+    load_more: "نمایش بیشتر",
+    loading_more: "در حال دریافت...",
     // Login Page
     login_welcome: "خوش آمدید",
     login_description: "لطفا اطلاعات خود را وارد کنید.",
     email_placeholder: "آدرس ایمیل",
+    username_placeholder: "نام کاربری",
     password_placeholder: "رمز عبور",
     forgot_password: "رمز عبور را فراموش کرده‌اید؟",
     sign_in: "ورود",
     no_account: "حساب کاربری ندارید؟",
     sign_up: "ثبت نام",
     back: "بازگشت",
+    // Register Page
+    register_welcome: "ساخت حساب",
+    register_description: "لطفا اطلاعات خود را وارد کنید.",
+    full_name_placeholder: "نام کاربر",
+    phone_placeholder: "شماره تماس",
+    confirm_password_placeholder: "تایید رمز عبور",
+    already_have_account: "قبلاً ثبت نام کرده‌اید؟",
   },
 };
 

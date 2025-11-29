@@ -6,7 +6,7 @@ function CustomCursor() {
   const cursorRef = useRef(null); // The container moving with mouse
   const followerRef = useRef(null); // The trailing circle
   const dotRef = useRef(null); // The inner dot
-  const textRef = useRef(null); // The text element
+  const textRef = useRef(null); // The text j,delement
   const { cursorVariant, cursorTheme, cursorText } = useCursor();
   const cyanColor = "#00ffff"; // Turquoise blue from LightRays
 
@@ -60,28 +60,29 @@ function CustomCursor() {
 
     // Priority 1: Detail view (Hovering product card)
     if (cursorVariant === "detail") {
-        // Hide follower
-        gsap.to(follower, { scale: 0, opacity: 0, duration: 0.3 });
-        
-        // Hide dot
-        gsap.to(dot, { scale: 0, opacity: 0, duration: 0.3 });
+      // Hide follower
+      gsap.to(follower, { scale: 0, opacity: 0, duration: 0.3 });
 
-        // Show Text
-        gsap.to(text, {
-            scale: 2,
-            opacity: 1,
-            duration: 0.3,
-            ease: "back.out(1.7)"
-        });
-        return;
+      // Hide dot
+      gsap.to(dot, { scale: 0, opacity: 0, duration: 0.3 });
+
+      // Show Text
+      gsap.to(text, {
+        scale: 2,
+        opacity: 1,
+        duration: 0.3,
+        ease: "back.out(1.7)",
+      });
+      return;
     }
 
     // Priority 2: Products Theme (General page theme)
     if (cursorTheme === "products") {
       gsap.to(follower, { scale: 0, opacity: 0, duration: 0.3 });
-      
+
       // If hovering interactive elements in products page (like menu)
-      const isHoveringInteractive = cursorVariant === "menu" || cursorVariant === "text";
+      const isHoveringInteractive =
+        cursorVariant === "menu" || cursorVariant === "text";
 
       gsap.to(dot, {
         scale: isHoveringInteractive ? 2 : 1.5,
@@ -92,7 +93,7 @@ function CustomCursor() {
         height: 16,
         duration: 0.3,
       });
-      
+
       gsap.to(text, { scale: 0, opacity: 0, duration: 0.3 });
       return;
     }
@@ -116,6 +117,7 @@ function CustomCursor() {
         break;
 
       case "menu":
+      case "button":
         gsap.to(follower, {
           scale: 1.5,
           backgroundColor: "transparent",
@@ -161,14 +163,18 @@ function CustomCursor() {
         className="fixed top-0 left-0 z-[9999] pointer-events-none flex items-center justify-center"
       >
         {/* The Dot */}
-        <div 
-            ref={dotRef} 
-            className="w-4 h-4 bg-white rounded-full mix-blend-difference"
+        <div
+          ref={dotRef}
+          className="w-4 h-4 bg-white rounded-full mix-blend-difference"
         />
-        
+
         {/* The Text */}
-        <div ref={textRef} className="absolute opacity-0 transform scale-0 whitespace-nowrap text-[10px] font-bold tracking-wider uppercase" style={{ color: cyanColor }}>
-            {cursorText}
+        <div
+          ref={textRef}
+          className="absolute opacity-0 transform scale-0 whitespace-nowrap text-[10px] font-bold tracking-wider uppercase"
+          style={{ color: cyanColor }}
+        >
+          {cursorText}
         </div>
       </div>
 

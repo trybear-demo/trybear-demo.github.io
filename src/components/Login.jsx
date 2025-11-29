@@ -5,7 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import BlurText from "./BlurText";
 import Magnet from "./Magnet";
-import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { ArrowLeft, User, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MenuBar from "./MenuBar";
 import MenuOverlay from "./MenuOverlay";
@@ -54,6 +54,16 @@ const Login = () => {
           "-=0.5"
         )
         .from(
+          ".forgot-password",
+          {
+            y: 10,
+            opacity: 0,
+            duration: 0.5,
+            ease: "power3.out",
+          },
+          "-=0.3"
+        )
+        .from(
           ".login-button",
           {
             y: 20,
@@ -61,7 +71,7 @@ const Login = () => {
             duration: 0.8,
             ease: "power3.out",
           },
-          "-=0.6"
+          "-=0.4"
         )
         .from(
           ".back-button",
@@ -86,22 +96,26 @@ const Login = () => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-gray-800/20 via-black to-black -z-10" />
 
       {/* Navigation Elements */}
-      <div className="fixed top-4 left-4 z-50 flex items-center gap-4">
-        <LanguageToggle visible={true} />
-        
-        {/* Back Button */}
-        <button
-          onClick={() => navigate("/")}
-          className="back-button fixed top-4 left-20 h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center overflow-hidden hover:w-32 transition-all duration-300 group z-50"
-          dir="ltr"
-          onMouseEnter={() => setCursorVariant("button")}
-          onMouseLeave={() => setCursorVariant("default")}
-        >
-          <ArrowLeft size={20} className="text-white shrink-0" />
-          <span className="ml-2 text-sm font-medium text-white opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-300">
-            {t("back")}
-          </span>
-        </button>
+      <LanguageToggle visible={true} />
+
+      <div className="fixed top-4 left-20 z-50">
+        <Magnet padding={20} magnetStrength={3}>
+          <button
+            onClick={() => navigate("/")}
+            className="back-button flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition-all duration-300 text-white group"
+            onMouseEnter={() => setCursorVariant("button")}
+            onMouseLeave={() => setCursorVariant("default")}
+            dir="ltr"
+          >
+            <ArrowLeft 
+              size={18} 
+              className="group-hover:-translate-x-1 transition-transform duration-300" 
+            />
+            <span className="text-sm font-medium">
+              {t("back")}
+            </span>
+          </button>
+        </Magnet>
       </div>
 
       <Logo ref={logoRef} />
@@ -132,11 +146,11 @@ const Login = () => {
         <form className="w-full space-y-6">
           <div className="login-input-group relative group">
             <div className="absolute inset-y-0 left-0 pl-4 rtl:right-0 rtl:left-auto rtl:pr-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-white transition-colors duration-300">
-              <Mail size={20} />
+              <User size={20} />
             </div>
             <input
-              type="email"
-              placeholder={t("email_placeholder")}
+              type="text"
+              placeholder={t("username_placeholder")}
               className="w-full bg-gray-900/30 border border-gray-800 rounded-xl px-12 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-600 focus:bg-gray-900/50 transition-all duration-300 rtl:text-right"
               onMouseEnter={() => setCursorVariant("text")}
               onMouseLeave={() => setCursorVariant("default")}
@@ -156,10 +170,17 @@ const Login = () => {
             />
           </div>
 
-          <div className="login-button pt-4 w-full">
+          <div className="forgot-password flex justify-end w-full">
+            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors duration-300">
+              {t("forgot_password")}
+            </a>
+          </div>
+
+          <div className="login-button pt-2 w-full">
             <Magnet padding={80} magnetStrength={5} className="w-full">
               <button
                 type="button"
+                onClick={() => navigate("/dashboard")}
                 className="w-full bg-white text-black font-extrabold text-xl py-4 rounded-xl hover:bg-gray-200 transition-all duration-300 transform active:scale-[0.98]"
                 onMouseEnter={() => setCursorVariant("button")}
                 onMouseLeave={() => setCursorVariant("default")}
@@ -167,6 +188,20 @@ const Login = () => {
                 {t("sign_in")}
               </button>
             </Magnet>
+          </div>
+          
+          <div className="text-center mt-4">
+            <p className="text-gray-400 text-sm">
+              {t("no_account")}{" "}
+              <span
+                onClick={() => navigate("/register")}
+                className="text-white cursor-pointer hover:underline font-bold"
+                onMouseEnter={() => setCursorVariant("button")}
+                onMouseLeave={() => setCursorVariant("default")}
+              >
+                {t("sign_up")}
+              </span>
+            </p>
           </div>
         </form>
       </div>
