@@ -8,7 +8,7 @@
       // MIT License
       // This script handles GitHub Pages SPA routing by redirecting all 404 pages
       // to index.html with the original path stored in sessionStorage
-      var pathSegmentsToKeep = 0; // Set to 0 for user sites (username.github.io)
+      var pathSegmentsToKeep = 1; // Set to 1 for project sites (username.github.io/repo-name)
 
       var l = window.location;
       l.replace(
