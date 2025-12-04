@@ -49,31 +49,29 @@ const generateProductData = (companyId, dateRange, mode) => {
     total += baseValue;
     items.push({
       id: i,
-      name:
-        productNames[i % productNames.length] +
-        " " +
-        (Math.floor(random() * 10) + 1),
+      name: productNames[i % productNames.length],
       value: baseValue,
       color: "", // will fill later
     });
   }
 
-  // Calculate percentages and angles
+  // Sort by value (descending) first, then calculate angles
+  items.sort((a, b) => b.value - a.value);
+
+  // Calculate percentages and angles after sorting
   let startAngle = 0;
-  return items
-    .map((item) => {
-      const percent = item.value / total;
-      const angle = percent * 360;
-      const res = {
-        ...item,
-        percent: (percent * 100).toFixed(1),
-        startAngle,
-        endAngle: startAngle + angle,
-      };
-      startAngle += angle;
-      return res;
-    })
-    .sort((a, b) => b.value - a.value); // Sort for better visuals
+  return items.map((item) => {
+    const percent = item.value / total;
+    const angle = percent * 360;
+    const res = {
+      ...item,
+      percent: (percent * 100).toFixed(1),
+      startAngle,
+      endAngle: startAngle + angle,
+    };
+    startAngle += angle;
+    return res;
+  });
 };
 
 // SVG Arc Generator
@@ -97,24 +95,25 @@ const ProductDistributionChart = ({
     [companyId, dateRange, mode]
   );
 
-  // Generate colors based on the main company color but with variations
-  // Simple palette generator or usage of HSL
-  const getColors = (baseColorRGB, count) => {
-    // Parse RGB "255, 100, 0"
-    const [r, g, b] = baseColorRGB.split(",").map((n) => parseInt(n.trim()));
-
-    // Generate variations
-    return Array.from({ length: count }, (_, i) => {
-      // Shift Hue slightly or change lightness/opacity
-      // Let's try changing opacity/lightness for a monochromatic feel or complementary
-      const opacity = 1 - i * 0.08;
-      return `rgba(${r}, ${g}, ${b}, ${Math.max(0.2, opacity)})`;
-    });
-  };
+  // Distinct color palette for each product group
+  const distinctColors = [
+    "#3B82F6", // Blue
+    "#22C55E", // Green
+    "#F59E0B", // Amber
+    "#EF4444", // Red
+    "#8B5CF6", // Violet
+    "#EC4899", // Pink
+    "#06B6D4", // Cyan
+    "#F97316", // Orange
+    "#14B8A6", // Teal
+    "#A855F7", // Purple
+    "#84CC16", // Lime
+    "#6366F1", // Indigo
+  ];
 
   const colors = useMemo(
-    () => getColors(color, data.length),
-    [color, data.length]
+    () => data.map((_, i) => distinctColors[i % distinctColors.length]),
+    [data.length]
   );
 
   // Path calculation
@@ -160,7 +159,7 @@ const ProductDistributionChart = ({
             className="w-1 h-6 rounded-full"
             style={{ backgroundColor: mainColor }}
           />
-          توزیع کالا ({mode === "amount" ? "مبلغی" : "تعدادی"})
+          سهم از فروش گروه کالا
         </h3>
       </div>
 
@@ -191,28 +190,67 @@ const ProductDistributionChart = ({
 
           {/* Center Text */}
           <g pointerEvents="none">
-            <text
-              x="0"
-              y="-10"
-              textAnchor="middle"
-              fill="white"
-              fontSize="28"
-              fontWeight="bold"
-              style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}
-            >
-              {hoveredSlice ? `${hoveredSlice.percent}%` : data.length}
-            </text>
-            <text
-              x="0"
-              y="20"
-              textAnchor="middle"
-              fill="white"
-              fontSize="12"
-              fontWeight="bold"
-              opacity="0.9"
-            >
-              {hoveredSlice ? hoveredSlice.name : "محصول فعال"}
-            </text>
+            {hoveredSlice ? (
+              <>
+                <text
+                  x="0"
+                  y="-20"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="24"
+                  fontWeight="bold"
+                  style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}
+                >
+                  {hoveredSlice.percent}%
+                </text>
+                <text
+                  x="0"
+                  y="5"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="11"
+                  fontWeight="bold"
+                  opacity="0.9"
+                >
+                  {hoveredSlice.name}
+                </text>
+                <text
+                  x="0"
+                  y="25"
+                  textAnchor="middle"
+                  fill="#22C55E"
+                  fontSize="11"
+                  fontWeight="bold"
+                >
+                  {hoveredSlice.value.toLocaleString("fa-IR")} م.ر
+                </text>
+              </>
+            ) : (
+              <>
+                <text
+                  x="0"
+                  y="-10"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="28"
+                  fontWeight="bold"
+                  style={{ textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}
+                >
+                  {data.length}
+                </text>
+                <text
+                  x="0"
+                  y="20"
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="12"
+                  fontWeight="bold"
+                  opacity="0.9"
+                >
+                  گروه کالای فعال
+                </text>
+              </>
+            )}
           </g>
         </svg>
       </div>

@@ -42,13 +42,13 @@ const ProductView = () => {
   // Sales View Mode: 'amount' | 'quantity' | 'details'
   const [mode, setMode] = useState("amount");
 
-  // Mock Companies with Specific Colors
+  // Mock Companies with Specific Colors and Logos
   const companies = [
-    { id: 1, name: "کاله", color: "255, 100, 0" }, // Orange
-    { id: 2, name: "میهن", color: "0, 122, 255" }, // Blue
-    { id: 3, name: "شیرین عسل", color: "255, 0, 100" }, // Red/Pink
-    { id: 4, name: "سولیکو", color: "0, 200, 100" }, // Green
-    { id: 5, name: "زر ماکارون", color: "255, 200, 0" }, // Yellow
+    { id: 1, name: "کاله", color: "255, 100, 0", logo: "🥛" }, // Orange - Kalleh
+    { id: 2, name: "پگاه", color: "0, 122, 255", logo: "🧀" }, // Blue - Pegah
+    { id: 3, name: "شیرین عسل", color: "255, 0, 100", logo: "🍯" }, // Red/Pink
+    { id: 4, name: "سولیکو", color: "0, 200, 100", logo: "🥬" }, // Green - Solico
+    { id: 5, name: "زر ماکارون", color: "255, 200, 0", logo: "🍝" }, // Yellow - Zar Macaron
   ];
 
   const [selectedCompany, setSelectedCompany] = useState(companies[0]);
@@ -77,22 +77,62 @@ const ProductView = () => {
 
   const productName = getProductName(id);
 
-  // Updated templates with 1404
+  // Updated templates with multiple years and ranges
   const dateTemplates = [
+    // Quick access
     { label: "ماه آخر", value: "last_month" },
-    { label: "سال آخر", value: "last_year" },
-    { label: "سال ۱۴۰۴", value: "1404" },
+    { label: "۶ ماه اخیر", value: "last_6_months" },
+    // Individual years
+    { label: "۱۴۰۴", value: "1404" },
+    { label: "۱۴۰۳", value: "1403" },
+    { label: "۱۴۰۲", value: "1402" },
+    { label: "۱۴۰۱", value: "1401" },
+    { label: "۱۴۰۰", value: "1400" },
+    // Multi-year ranges
+    { label: "۲ سال اخیر", value: "last_2_years" },
+    { label: "۳ سال اخیر", value: "last_3_years" },
+    { label: "۵ سال اخیر", value: "last_5_years" },
+    { label: "همه", value: "all" },
   ];
 
   const handleTemplateClick = (template) => {
-    // Logic to set dates based on template would go here
-    // For now just updating state to show interaction
-    if (template === "last_month")
-      setDateRange({ from: "1403/12/01", to: "1404/01/01" });
-    if (template === "last_year")
-      setDateRange({ from: "1404/01/01", to: "1404/12/29" });
-    if (template === "1404")
-      setDateRange({ from: "1404/01/01", to: "1404/12/29" });
+    switch (template) {
+      case "last_month":
+        setDateRange({ from: "1404/11/01", to: "1404/12/29" });
+        break;
+      case "last_6_months":
+        setDateRange({ from: "1404/07/01", to: "1404/12/29" });
+        break;
+      case "1404":
+        setDateRange({ from: "1404/01/01", to: "1404/12/29" });
+        break;
+      case "1403":
+        setDateRange({ from: "1403/01/01", to: "1403/12/29" });
+        break;
+      case "1402":
+        setDateRange({ from: "1402/01/01", to: "1402/12/29" });
+        break;
+      case "1401":
+        setDateRange({ from: "1401/01/01", to: "1401/12/29" });
+        break;
+      case "1400":
+        setDateRange({ from: "1400/01/01", to: "1400/12/29" });
+        break;
+      case "last_2_years":
+        setDateRange({ from: "1403/01/01", to: "1404/12/29" });
+        break;
+      case "last_3_years":
+        setDateRange({ from: "1402/01/01", to: "1404/12/29" });
+        break;
+      case "last_5_years":
+        setDateRange({ from: "1400/01/01", to: "1404/12/29" });
+        break;
+      case "all":
+        setDateRange({ from: "1398/01/01", to: "1404/12/29" });
+        break;
+      default:
+        setDateRange({ from: "1404/01/01", to: "1404/12/29" });
+    }
   };
 
   // Helper to get metrics based on company ID and mode
@@ -261,18 +301,36 @@ const ProductView = () => {
     const avgPrice = 0.85; // used to convert amount to quantity roughly
 
     const data = [];
+    let totalSales = 0;
+
+    // First pass: generate raw data
     for (let i = 0; i < count; i++) {
-      const amountVal = Math.floor(random() * 5000) + 500;
-      const qtyVal = Math.floor(amountVal / avgPrice);
+      const salesAmount = Math.floor(random() * 5000) + 500;
+      const returnsAmount = Math.floor(salesAmount * (0.05 + random() * 0.15)); // 5-20% returns
+      const netSales = salesAmount - returnsAmount;
+
+      const salesQty = Math.floor(salesAmount / avgPrice);
+      const returnsQty = Math.floor(returnsAmount / avgPrice);
+      const netQty = salesQty - returnsQty;
+
+      totalSales += currentMode === "amount" ? salesAmount : salesQty;
 
       data.push({
         id: i,
         name: names[i % names.length] + (i >= names.length ? ` ${i + 1}` : ""),
-        value: currentMode === "amount" ? amountVal : qtyVal,
+        sales: currentMode === "amount" ? salesAmount : salesQty,
+        returns: currentMode === "amount" ? returnsAmount : returnsQty,
+        netValue: currentMode === "amount" ? netSales : netQty,
       });
     }
 
-    return data.sort((a, b) => b.value - a.value);
+    // Second pass: calculate percentages and sort
+    return data
+      .map((item) => ({
+        ...item,
+        percent: ((item.sales / totalSales) * 100).toFixed(1),
+      }))
+      .sort((a, b) => b.netValue - a.netValue);
   };
 
   const sellersData = useMemo(
@@ -291,6 +349,7 @@ const ProductView = () => {
       description: currentMetrics.card1.desc,
       label: currentMetrics.card1.label,
       color: "#060010",
+      glowColor: "34, 197, 94", // Green
       icon: <TrendingUp size={24} className="text-green-400" />,
     },
     {
@@ -298,6 +357,7 @@ const ProductView = () => {
       description: currentMetrics.card2.desc,
       label: currentMetrics.card2.label,
       color: "#060010",
+      glowColor: "239, 68, 68", // Red
       icon: <RotateCcw size={24} className="text-red-400" />,
     },
     {
@@ -305,6 +365,7 @@ const ProductView = () => {
       description: currentMetrics.card3.desc,
       label: currentMetrics.card3.label,
       color: "#060010",
+      glowColor: "250, 204, 21", // Yellow
       icon: <Percent size={24} className="text-yellow-400" />,
     },
     {
@@ -312,6 +373,11 @@ const ProductView = () => {
       description: currentMetrics.card4.desc,
       label: currentMetrics.card4.label,
       color: "#060010",
+      glowColor: currentMetrics.card4.isGrowth
+        ? currentMetrics.card4.positive
+          ? "34, 197, 94" // Green
+          : "239, 68, 68" // Red
+        : "59, 130, 246", // Blue
       icon: currentMetrics.card4.isGrowth ? (
         currentMetrics.card4.positive ? (
           <ArrowUp size={24} className="text-green-400" />
@@ -327,6 +393,11 @@ const ProductView = () => {
       description: currentMetrics.card5.desc,
       label: currentMetrics.card5.label,
       color: "#060010",
+      glowColor: currentMetrics.card5.isGrowth
+        ? currentMetrics.card5.positive
+          ? "34, 197, 94" // Green
+          : "239, 68, 68" // Red
+        : "168, 85, 247", // Purple
       icon: currentMetrics.card5.isGrowth ? (
         currentMetrics.card5.positive ? (
           <ArrowUp size={24} className="text-green-400" />
@@ -428,14 +499,22 @@ const ProductView = () => {
               className="text-xl font-bold tracking-widest cursor-default hidden md:block"
             />
 
-            {/* Section Switcher & Mode Controls */}
-            <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10">
-              {/* Sales button - styled like "مبلغی" when in sales section */}
+            {/* Section Switcher (Sales vs Financial) */}
+            <div className="flex items-center p-0.5 bg-[#111] rounded-lg border border-white/10 relative">
+              {/* Animated Background for Switcher */}
+              <div
+                className={`absolute top-0.5 bottom-0.5 rounded-md bg-white/10 transition-all duration-300 ease-out ${
+                  section === "sales"
+                    ? "start-0.5 end-1/2"
+                    : "start-1/2 end-0.5"
+                }`}
+              />
+
               <button
                 onClick={() => setSection("sales")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
+                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
                   section === "sales"
-                    ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                    ? "text-white"
                     : "text-gray-500 hover:text-gray-300"
                 }`}
                 onMouseEnter={() => setCursorVariant("button")}
@@ -444,15 +523,30 @@ const ProductView = () => {
                 <LayoutDashboard size={14} />
                 <span>فروش</span>
               </button>
-
-              {/* Mode buttons - Only visible if section === 'sales' */}
-              <div
-                className={`flex items-center overflow-hidden transition-all duration-500 ease-in-out ${
-                  section === "sales"
-                    ? "max-w-[500px] opacity-100"
-                    : "max-w-0 opacity-0"
+              <button
+                onClick={() => setSection("financial")}
+                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
+                  section === "financial"
+                    ? "text-white"
+                    : "text-gray-500 hover:text-gray-300"
                 }`}
+                onMouseEnter={() => setCursorVariant("button")}
+                onMouseLeave={() => setCursorVariant("default")}
               >
+                <Wallet size={14} />
+                <span>مالی</span>
+              </button>
+            </div>
+
+            {/* Sub-Controls: Sales Modes (Only visible if section === 'sales') */}
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                section === "sales"
+                  ? "max-h-16 opacity-100"
+                  : "max-h-0 opacity-0"
+              }`}
+            >
+              <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10 mt-1">
                 <button
                   onClick={() => setMode("amount")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
@@ -493,21 +587,6 @@ const ProductView = () => {
                   <span>جزئیات فروش</span>
                 </button>
               </div>
-
-              {/* Financial button - styled like "تعدادی" or "جزئیات فروش" */}
-              <button
-                onClick={() => setSection("financial")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
-                  section === "financial"
-                    ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onMouseEnter={() => setCursorVariant("button")}
-                onMouseLeave={() => setCursorVariant("default")}
-              >
-                <Wallet size={14} />
-                <span>مالی</span>
-              </button>
             </div>
           </div>
 
@@ -516,13 +595,23 @@ const ProductView = () => {
             <div className="relative w-full md:w-auto">
               <button
                 onClick={() => setIsCompanyDropdownOpen(!isCompanyDropdownOpen)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all w-full md:min-w-[160px] justify-between"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all w-full md:min-w-[180px] justify-between"
                 onMouseEnter={() => setCursorVariant("button")}
                 onMouseLeave={() => setCursorVariant("default")}
               >
-                <span className="text-sm font-medium truncate">
-                  {selectedCompany.name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-base"
+                    style={{
+                      backgroundColor: `rgba(${selectedCompany.color}, 0.2)`,
+                    }}
+                  >
+                    {selectedCompany.logo}
+                  </span>
+                  <span className="text-sm font-medium truncate">
+                    {selectedCompany.name}
+                  </span>
+                </div>
                 <ChevronDown
                   size={16}
                   className={`transition-transform duration-300 ${
@@ -540,11 +629,21 @@ const ProductView = () => {
                         setSelectedCompany(company);
                         setIsCompanyDropdownOpen(false);
                       }}
-                      className="w-full text-start px-4 py-3 text-sm hover:bg-blue-500/10 hover:text-blue-400 transition-colors border-b border-white/5 last:border-0"
+                      className={`w-full text-start px-4 py-3 text-sm hover:bg-blue-500/10 hover:text-blue-400 transition-colors border-b border-white/5 last:border-0 flex items-center gap-3 ${
+                        selectedCompany.id === company.id ? "bg-white/5" : ""
+                      }`}
                       onMouseEnter={() => setCursorVariant("button")}
                       onMouseLeave={() => setCursorVariant("default")}
                     >
-                      {company.name}
+                      <span
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-base"
+                        style={{
+                          backgroundColor: `rgba(${company.color}, 0.2)`,
+                        }}
+                      >
+                        {company.logo}
+                      </span>
+                      <span>{company.name}</span>
                     </button>
                   ))}
                 </div>
@@ -585,9 +684,9 @@ const ProductView = () => {
                 </div>
               ) : (
                 /* Standard Bento & Charts Layout for Amount/Quantity Modes */
-                <>
+                <div className="space-y-6">
                   {/* Magic Bento Grid with Company Color - Displaying Metrics */}
-                  <div dir="rtl" className="w-full mb-8">
+                  <div dir="rtl" className="w-full">
                     <MagicBento
                       data={metricsData}
                       textAutoHide={false}
@@ -649,7 +748,7 @@ const ProductView = () => {
                       unit={mode === "amount" ? "میلیون ریال" : "عدد"}
                     />
                   </div>
-                </>
+                </div>
               )}
             </>
           )}

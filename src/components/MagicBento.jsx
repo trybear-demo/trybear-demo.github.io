@@ -527,8 +527,8 @@ const MagicBento = ({
             inset: 0;
             padding: 6px;
             background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.8)) 0%,
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.4)) 30%,
+                rgba(var(--card-glow-color, ${glowColor}), calc(var(--glow-intensity) * 0.8)) 0%,
+                rgba(var(--card-glow-color, ${glowColor}), calc(var(--glow-intensity) * 0.4)) 30%,
                 transparent 60%);
             border-radius: inherit;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -545,7 +545,7 @@ const MagicBento = ({
           }
           
           .card--border-glow:hover {
-            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px rgba(${glowColor}, 0.2);
+            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px rgba(var(--card-glow-color, ${glowColor}), 0.3);
           }
           
           .particle::before {
@@ -611,6 +611,9 @@ const MagicBento = ({
       <BentoCardGrid gridRef={gridRef}>
         <div className="card-responsive grid gap-2">
           {data.map((card, index) => {
+            // Use card-specific glow color if available, otherwise use global
+            const cardGlowColor = card.glowColor || glowColor;
+
             const baseClassName = `card flex flex-col justify-between relative aspect-[4/3] min-h-[200px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${
               enableBorderGlow ? "card--border-glow" : ""
             }`;
@@ -623,6 +626,7 @@ const MagicBento = ({
               "--glow-y": "50%",
               "--glow-intensity": "0",
               "--glow-radius": "200px",
+              "--card-glow-color": cardGlowColor,
             };
 
             if (enableStars) {
@@ -633,7 +637,7 @@ const MagicBento = ({
                   style={cardStyle}
                   disableAnimations={shouldDisableAnimations}
                   particleCount={particleCount}
-                  glowColor={glowColor}
+                  glowColor={cardGlowColor}
                   enableTilt={enableTilt}
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}
@@ -757,7 +761,7 @@ const MagicBento = ({
                       width: ${maxDistance * 2}px;
                       height: ${maxDistance * 2}px;
                       border-radius: 50%;
-                      background: radial-gradient(circle, rgba(${glowColor}, 0.4) 0%, rgba(${glowColor}, 0.2) 30%, transparent 70%);
+                      background: radial-gradient(circle, rgba(${cardGlowColor}, 0.4) 0%, rgba(${cardGlowColor}, 0.2) 30%, transparent 70%);
                       left: ${x - maxDistance}px;
                       top: ${y - maxDistance}px;
                       pointer-events: none;

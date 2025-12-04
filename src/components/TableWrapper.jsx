@@ -91,7 +91,11 @@ const TableWrapper = ({ title, icon: Icon, columns, data, color = "255, 255, 255
                 </tr>
             </thead>
             <tbody className="text-sm text-gray-300">
-                {data.map((row, idx) => (
+                {data.map((row, idx) => {
+                // Get all values from the row object in order
+                const rowValues = Object.values(row);
+                
+                return (
                 <motion.tr
                     key={idx}
                     initial={{ opacity: 0, y: 10 }}
@@ -101,23 +105,27 @@ const TableWrapper = ({ title, icon: Icon, columns, data, color = "255, 255, 255
                     row.isTotal ? "font-bold text-white bg-white/5" : ""
                     }`}
                 >
-                    {columns.map((col, cIdx) => {
-                    let cellValue;
-                    if (cIdx === 0) {
-                        cellValue = row.item;
-                    } else {
-                        const year = col.replace("سال ", "");
-                        cellValue = row[year];
-                    }
-
+                    {rowValues.map((cellValue, cIdx) => {
+                    // Special styling for status column
+                    const isStatus = cellValue === "پرداخت شده" || cellValue === "معوق";
+                    
                     return (
                         <td key={cIdx} className="py-4 px-4 whitespace-nowrap">
-                            {cellValue}
+                            {isStatus ? (
+                                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                                    cellValue === "پرداخت شده" 
+                                        ? "bg-green-500/20 text-green-400" 
+                                        : "bg-red-500/20 text-red-400"
+                                }`}>
+                                    {cellValue}
+                                </span>
+                            ) : cellValue}
                         </td>
                     );
                     })}
                 </motion.tr>
-                ))}
+                );
+                })}
             </tbody>
             </table>
         </div>

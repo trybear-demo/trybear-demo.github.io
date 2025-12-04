@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, User, Briefcase } from "lucide-react";
 
 const RankingChart = ({
@@ -9,7 +9,8 @@ const RankingChart = ({
   icon: Icon = Trophy,
   unit = "میلیون ریال",
 }) => {
-  const maxVal = Math.max(...data.map((d) => d.value));
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const maxVal = Math.max(...data.map((d) => d.netValue || d.value || 0));
 
   return (
     <div
@@ -31,9 +32,12 @@ const RankingChart = ({
       </div>
 
       {/* Scrollable List */}
-      <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-3">
+      <div className="flex-grow overflow-y-auto pl-4 pr-1 custom-scrollbar space-y-3">
         {data.map((item, index) => {
-          const percent = (item.value / maxVal) * 100;
+          const displayValue = item.netValue ?? item.value ?? 0;
+          const percent = maxVal > 0 ? (displayValue / maxVal) * 100 : 0;
+          const isHovered = hoveredItem?.id === item.id;
+
           return (
             <motion.div
               key={item.id}
@@ -41,6 +45,8 @@ const RankingChart = ({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className="group relative bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl p-3 flex items-center gap-4 transition-all"
+              onMouseEnter={() => setHoveredItem(item)}
+              onMouseLeave={() => setHoveredItem(null)}
             >
               {/* Rank Badge */}
               <div
@@ -67,7 +73,7 @@ const RankingChart = ({
                   </span>
                   <div className="flex items-center gap-1">
                     <span className="font-mono font-bold text-white text-sm">
-                      {item.value.toLocaleString()}
+                      {displayValue.toLocaleString()}
                     </span>
                     <span className="text-xs text-gray-500">{unit}</span>
                   </div>
@@ -90,6 +96,40 @@ const RankingChart = ({
                   </motion.div>
                 </div>
               </div>
+
+              {/* Hover Tooltip */}
+              <AnimatePresence>
+                {isHovered && item.sales !== undefined && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-2 bg-[#111]/95 backdrop-blur-md border border-white/10 p-3 rounded-xl shadow-2xl z-50 min-w-[180px]"
+                  >
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-green-400 font-mono font-bold">
+                          {item.sales.toLocaleString()}
+                        </span>
+                        <span className="text-gray-400">فروش:</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-red-400 font-mono font-bold">
+                          {item.returns.toLocaleString()}
+                        </span>
+                        <span className="text-gray-400">برگشتی:</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 pt-2 border-t border-white/10">
+                        <span className="text-blue-400 font-mono font-bold">
+                          {item.percent}%
+                        </span>
+                        <span className="text-gray-400">سهم از کل:</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           );
         })}
@@ -100,7 +140,7 @@ const RankingChart = ({
       
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
+          width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: rgba(255, 255, 255, 0.02);
