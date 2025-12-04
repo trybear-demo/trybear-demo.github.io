@@ -428,52 +428,31 @@ const ProductView = () => {
               className="text-xl font-bold tracking-widest cursor-default hidden md:block"
             />
 
-            {/* Section Switcher (Sales vs Financial) */}
-            <div className="flex items-center p-1 bg-[#111] rounded-xl border border-white/10 relative">
-              {/* Animated Background for Switcher */}
-              <div
-                className={`absolute top-1 bottom-1 rounded-lg bg-white/10 transition-all duration-300 ease-out ${
-                  section === "sales" ? "left-1 right-1/2" : "left-1/2 right-1"
-                }`}
-              />
-
+            {/* Section Switcher & Mode Controls */}
+            <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10">
+              {/* Sales button - styled like "مبلغی" when in sales section */}
               <button
                 onClick={() => setSection("sales")}
-                className={`relative z-10 flex-1 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-300 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
                   section === "sales"
-                    ? "text-white"
+                    ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
                     : "text-gray-500 hover:text-gray-300"
                 }`}
                 onMouseEnter={() => setCursorVariant("button")}
                 onMouseLeave={() => setCursorVariant("default")}
               >
-                <LayoutDashboard size={16} />
+                <LayoutDashboard size={14} />
                 <span>فروش</span>
               </button>
-              <button
-                onClick={() => setSection("financial")}
-                className={`relative z-10 flex-1 px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-300 ${
-                  section === "financial"
-                    ? "text-white"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onMouseEnter={() => setCursorVariant("button")}
-                onMouseLeave={() => setCursorVariant("default")}
-              >
-                <Wallet size={16} />
-                <span>مالی</span>
-              </button>
-            </div>
 
-            {/* Sub-Controls: Sales Modes (Only visible if section === 'sales') */}
-            <div
-              className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                section === "sales"
-                  ? "max-h-16 opacity-100"
-                  : "max-h-0 opacity-0"
-              }`}
-            >
-              <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10 mt-1">
+              {/* Mode buttons - Only visible if section === 'sales' */}
+              <div
+                className={`flex items-center overflow-hidden transition-all duration-500 ease-in-out ${
+                  section === "sales"
+                    ? "max-w-[500px] opacity-100"
+                    : "max-w-0 opacity-0"
+                }`}
+              >
                 <button
                   onClick={() => setMode("amount")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
@@ -514,6 +493,21 @@ const ProductView = () => {
                   <span>جزئیات فروش</span>
                 </button>
               </div>
+
+              {/* Financial button - styled like "تعدادی" or "جزئیات فروش" */}
+              <button
+                onClick={() => setSection("financial")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
+                  section === "financial"
+                    ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                    : "text-gray-500 hover:text-gray-300"
+                }`}
+                onMouseEnter={() => setCursorVariant("button")}
+                onMouseLeave={() => setCursorVariant("default")}
+              >
+                <Wallet size={14} />
+                <span>مالی</span>
+              </button>
             </div>
           </div>
 
