@@ -18,6 +18,7 @@ import {
   Table as TableIcon,
   Wallet,
   LayoutDashboard,
+  PieChart,
 } from "lucide-react";
 import { LanguageContext } from "../context/LanguageContext";
 import { useCursor } from "../context/CursorContext";
@@ -30,6 +31,7 @@ import ProductDistributionChart from "./ProductDistributionChart";
 import RankingChart from "./RankingChart";
 import SalesTables from "./SalesTables";
 import FinancialTables from "./FinancialTables";
+import ProfitLossContent from "./ProfitLossContent";
 
 const ProductView = () => {
   const { id } = useParams();
@@ -499,15 +501,20 @@ const ProductView = () => {
               className="text-xl font-bold tracking-widest cursor-default hidden md:block"
             />
 
-            {/* Section Switcher (Sales vs Financial) */}
+            {/* Section Switcher (Sales vs Profit vs Financial) */}
             <div className="flex items-center p-0.5 bg-[#111] rounded-lg border border-white/10 relative">
               {/* Animated Background for Switcher */}
               <div
-                className={`absolute top-0.5 bottom-0.5 rounded-md bg-white/10 transition-all duration-300 ease-out ${
-                  section === "sales"
-                    ? "start-0.5 end-1/2"
-                    : "start-1/2 end-0.5"
-                }`}
+                className={`absolute top-0.5 bottom-0.5 rounded-md bg-white/10 transition-all duration-300 ease-out`}
+                style={{
+                  width: "calc(33.333% - 4px)",
+                  right:
+                    section === "sales"
+                      ? "2px"
+                      : section === "profit"
+                      ? "calc(33.333% + 2px)"
+                      : "calc(66.666% + 2px)",
+                }}
               />
 
               <button
@@ -522,6 +529,19 @@ const ProductView = () => {
               >
                 <LayoutDashboard size={14} />
                 <span>فروش</span>
+              </button>
+              <button
+                onClick={() => setSection("profit")}
+                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
+                  section === "profit"
+                    ? "text-white"
+                    : "text-gray-500 hover:text-gray-300"
+                }`}
+                onMouseEnter={() => setCursorVariant("button")}
+                onMouseLeave={() => setCursorVariant("default")}
+              >
+                <PieChart size={14} />
+                <span>سود و زیان</span>
               </button>
               <button
                 onClick={() => setSection("financial")}
@@ -666,6 +686,14 @@ const ProductView = () => {
           {section === "financial" ? (
             <div dir="rtl" className="w-full">
               <FinancialTables
+                companyId={selectedCompany.id}
+                color={selectedCompany.color}
+                dateRange={dateRange}
+              />
+            </div>
+          ) : section === "profit" ? (
+            <div dir="rtl" className="w-full">
+              <ProfitLossContent
                 companyId={selectedCompany.id}
                 color={selectedCompany.color}
                 dateRange={dateRange}
