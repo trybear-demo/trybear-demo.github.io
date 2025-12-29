@@ -147,6 +147,9 @@ const SalesChart = ({
   color = "59, 130, 246",
   dateRange,
   mode = "amount",
+  activeMonth = null,
+  onMonthClick = () => {},
+  activeFilters = {},
 }) => {
   const [hoveredBar, setHoveredBar] = useState(null);
 
@@ -154,6 +157,10 @@ const SalesChart = ({
     () => generateData(companyId, dateRange),
     [companyId, dateRange]
   );
+
+  // Check if this month is selected
+  const isMonthSelected = (d) =>
+    activeMonth && activeMonth.name === d.name && activeMonth.year === d.year;
 
   // Determine keys and labels based on mode
   const salesKey = mode === "amount" ? "sales" : "salesCount";
@@ -199,6 +206,9 @@ const SalesChart = ({
             <span className="hidden md:inline">روند فروش و برگشتی</span>
             <span className="md:hidden">آمار فروش</span>
           </h3>
+          <span className="text-xs text-gray-500 hidden lg:block">
+            (برای فیلتر کلیک کنید)
+          </span>
         </div>
 
         <div className="flex gap-4 text-sm">
@@ -273,14 +283,33 @@ const SalesChart = ({
             const returnsX = groupX + barGap / 2;
 
             const isHovered = hoveredBar?.index === i;
+            const isSelected = isMonthSelected(d);
+            const hasOtherSelected = activeMonth && !isSelected;
 
             return (
               <g
                 key={`${d.name}-${d.year}-${i}`}
                 onMouseEnter={() => setHoveredBar({ ...d, index: i })}
                 onMouseLeave={() => setHoveredBar(null)}
+                onClick={() =>
+                  onMonthClick({ name: d.name, year: d.year, index: i })
+                }
                 className="cursor-pointer"
               >
+                {/* Selected Highlight Background */}
+                {isSelected && (
+                  <rect
+                    x={groupX - barGroupWidth / 2}
+                    y={paddingTop - 5}
+                    width={barGroupWidth}
+                    height={chartHeight + 10}
+                    fill="rgba(34, 197, 94, 0.1)"
+                    stroke="rgba(34, 197, 94, 0.3)"
+                    strokeWidth="2"
+                    rx={8}
+                  />
+                )}
+
                 {/* Sales Bar */}
                 <motion.rect
                   initial={{ height: 0, y: paddingTop + chartHeight }}
@@ -293,9 +322,10 @@ const SalesChart = ({
                   width={barWidth}
                   rx={4}
                   fill="url(#salesBarGradient)"
-                  className={`transition-opacity duration-200 ${
-                    isHovered ? "opacity-100" : "opacity-80"
-                  }`}
+                  className="transition-opacity duration-200"
+                  style={{
+                    opacity: hasOtherSelected ? 0.3 : isHovered || isSelected ? 1 : 0.8,
+                  }}
                 />
 
                 {/* Returns Bar */}
@@ -310,13 +340,14 @@ const SalesChart = ({
                   width={barWidth}
                   rx={4}
                   fill="url(#returnsBarGradient)"
-                  className={`transition-opacity duration-200 ${
-                    isHovered ? "opacity-100" : "opacity-80"
-                  }`}
+                  className="transition-opacity duration-200"
+                  style={{
+                    opacity: hasOtherSelected ? 0.3 : isHovered || isSelected ? 1 : 0.8,
+                  }}
                 />
 
                 {/* Hover Highlight */}
-                {isHovered && (
+                {isHovered && !isSelected && (
                   <rect
                     x={groupX - barGroupWidth / 2}
                     y={paddingTop}
@@ -331,8 +362,9 @@ const SalesChart = ({
                 <text
                   x={groupX}
                   y={d.showYear ? height - 18 : height - 10}
-                  fill={isHovered ? "#fff" : "#888"}
+                  fill={isSelected ? "#22c55e" : isHovered ? "#fff" : hasOtherSelected ? "#555" : "#888"}
                   fontSize={d.showYear ? "9" : "11"}
+                  fontWeight={isSelected ? "bold" : "normal"}
                   textAnchor="middle"
                   className="transition-colors duration-200"
                 >
@@ -343,7 +375,7 @@ const SalesChart = ({
                   <text
                     x={groupX}
                     y={height - 6}
-                    fill={isHovered ? "#aaa" : "#555"}
+                    fill={isSelected ? "#22c55e" : isHovered ? "#aaa" : hasOtherSelected ? "#333" : "#555"}
                     fontSize="8"
                     textAnchor="middle"
                     className="transition-colors duration-200"

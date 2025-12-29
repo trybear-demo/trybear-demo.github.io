@@ -19,6 +19,8 @@ import {
   Wallet,
   LayoutDashboard,
   PieChart,
+  X,
+  Filter,
 } from "lucide-react";
 import { LanguageContext } from "../context/LanguageContext";
 import { useCursor } from "../context/CursorContext";
@@ -61,6 +63,32 @@ const ProductView = () => {
     from: "1404/01/01",
     to: "1404/12/29",
   });
+
+  // Interactive Filters State
+  const [activeFilters, setActiveFilters] = useState({
+    month: null, // e.g., { name: "فروردین", year: 1404, index: 0 }
+    productGroup: null, // e.g., { id: 0, name: "شیر کم‌چرب" }
+    seller: null, // e.g., { id: 0, name: "علی محمدی" }
+    customer: null, // e.g., { id: 0, name: "فروشگاه کوروش" }
+  });
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setActiveFilters({
+      month: null,
+      productGroup: null,
+      seller: null,
+      customer: null,
+    });
+  };
+
+  // Clear specific filter
+  const clearFilter = (filterType) => {
+    setActiveFilters((prev) => ({ ...prev, [filterType]: null }));
+  };
+
+  // Check if any filter is active
+  const hasActiveFilters = Object.values(activeFilters).some((v) => v !== null);
 
   // Mock Product Name based on ID (In real app, fetch from API/Store)
   // Using hardcoded names mapping to the IDs from Dashboard
@@ -137,13 +165,13 @@ const ProductView = () => {
     }
   };
 
-  // Helper to get metrics based on company ID and mode
-  const getCompanyMetrics = (companyId, dateRange, mode) => {
+  // Helper to get metrics based on company ID and mode, with filter support
+  const getCompanyMetrics = (companyId, dateRange, mode, filters = {}) => {
     // Simple hash of date range to vary numbers
     const dateModifier = (dateRange?.from?.charCodeAt(6) || 0) % 10;
 
     // Base values (Amount)
-    const baseValues = {
+    let baseValues = {
       1: { sales: 15400, returns: 1200, invoiceCount: 145, lines: 1450 },
       2: { sales: 22100, returns: 550, invoiceCount: 210, lines: 2300 },
       3: { sales: 11800, returns: 900, invoiceCount: 98, lines: 890 },
@@ -152,7 +180,33 @@ const ProductView = () => {
     }[companyId] || { sales: 0, returns: 0, invoiceCount: 0, lines: 0 };
 
     // Apply modifier based on date
-    const mod = 1 + dateModifier * 0.05;
+    let mod = 1 + dateModifier * 0.05;
+
+    // Apply filter modifiers - reduce values when a filter is active (to simulate subset)
+    const filterCount = Object.values(filters).filter((v) => v !== null).length;
+    if (filterCount > 0) {
+      // Each filter reduces the scope by roughly 15-30%
+      const filterMod = Math.pow(0.25 + Math.random() * 0.1, filterCount);
+      mod *= filterMod;
+    }
+
+    // If month is selected, multiply by a monthly factor (roughly 1/12)
+    if (filters.month) {
+      mod *= 0.08 + (filters.month.index || 0) * 0.005;
+    }
+
+    // If product group is selected, reduce further
+    if (filters.productGroup) {
+      mod *= 0.15 + (filters.productGroup.id || 0) * 0.02;
+    }
+
+    // If seller/customer is selected, reduce further
+    if (filters.seller) {
+      mod *= 0.1 + (filters.seller.id || 0) * 0.01;
+    }
+    if (filters.customer) {
+      mod *= 0.1 + (filters.customer.id || 0) * 0.01;
+    }
 
     // Amount Logic
     const salesAmount = Math.floor(baseValues.sales * mod);
@@ -246,10 +300,10 @@ const ProductView = () => {
     }
   };
 
-  // Re-calculate metrics when company OR date OR mode changes
+  // Re-calculate metrics when company OR date OR mode OR filters changes
   const currentMetrics = useMemo(
-    () => getCompanyMetrics(selectedCompany.id, dateRange, mode),
-    [selectedCompany.id, dateRange, mode]
+    () => getCompanyMetrics(selectedCompany.id, dateRange, mode, activeFilters),
+    [selectedCompany.id, dateRange, mode, activeFilters]
   );
 
   // Helper to generate mock ranking data based on mode
@@ -674,6 +728,80 @@ const ProductView = () => {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Active Filters Bar */}
+        {hasActiveFilters && (
+          <FadeContent blur={true} duration={300} className="w-full">
+            <div
+              dir="rtl"
+              className="flex flex-wrap items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-2xl"
+            >
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <Filter size={16} />
+                <span>فیلترهای فعال:</span>
+              </div>
+
+              {activeFilters.month && (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-full text-green-400 text-sm">
+                  <span>
+                    {activeFilters.month.name}
+                    {activeFilters.month.year && ` ${activeFilters.month.year}`}
+                  </span>
+                  <button
+                    onClick={() => clearFilter("month")}
+                    className="hover:bg-green-500/30 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {activeFilters.productGroup && (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-400 text-sm">
+                  <span>{activeFilters.productGroup.name}</span>
+                  <button
+                    onClick={() => clearFilter("productGroup")}
+                    className="hover:bg-blue-500/30 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {activeFilters.seller && (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full text-purple-400 text-sm">
+                  <span>{activeFilters.seller.name}</span>
+                  <button
+                    onClick={() => clearFilter("seller")}
+                    className="hover:bg-purple-500/30 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {activeFilters.customer && (
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 text-sm">
+                  <span>{activeFilters.customer.name}</span>
+                  <button
+                    onClick={() => clearFilter("customer")}
+                    className="hover:bg-orange-500/30 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={clearAllFilters}
+                className="mr-auto px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-full text-red-400 text-sm transition-colors flex items-center gap-1"
+              >
+                <X size={14} />
+                <span>پاک کردن همه</span>
+              </button>
+            </div>
+          </FadeContent>
+        )}
+
         {/* Key prop ensures component remounts/animates when company changes or mode changes */}
         <FadeContent
           key={`${selectedCompany.id}-${section}-${mode}`}
@@ -742,6 +870,18 @@ const ProductView = () => {
                         color={selectedCompany.color}
                         dateRange={dateRange}
                         mode={mode}
+                        activeMonth={activeFilters.month}
+                        onMonthClick={(monthData) =>
+                          setActiveFilters((prev) => ({
+                            ...prev,
+                            month:
+                              prev.month?.name === monthData.name &&
+                              prev.month?.year === monthData.year
+                                ? null
+                                : monthData,
+                          }))
+                        }
+                        activeFilters={activeFilters}
                       />
                     </div>
 
@@ -752,6 +892,17 @@ const ProductView = () => {
                         color={selectedCompany.color}
                         dateRange={dateRange}
                         mode={mode}
+                        activeProductGroup={activeFilters.productGroup}
+                        onProductGroupClick={(productData) =>
+                          setActiveFilters((prev) => ({
+                            ...prev,
+                            productGroup:
+                              prev.productGroup?.id === productData.id
+                                ? null
+                                : productData,
+                          }))
+                        }
+                        activeFilters={activeFilters}
                       />
                     </div>
                   </div>
@@ -767,6 +918,16 @@ const ProductView = () => {
                       color={selectedCompany.color}
                       icon={Briefcase}
                       unit={mode === "amount" ? "میلیون ریال" : "عدد"}
+                      activeItem={activeFilters.seller}
+                      onItemClick={(item) =>
+                        setActiveFilters((prev) => ({
+                          ...prev,
+                          seller:
+                            prev.seller?.id === item.id ? null : item,
+                        }))
+                      }
+                      activeFilters={activeFilters}
+                      filterType="seller"
                     />
                     <RankingChart
                       title="رتبه‌بندی مشتریان"
@@ -774,6 +935,16 @@ const ProductView = () => {
                       color={selectedCompany.color}
                       icon={User}
                       unit={mode === "amount" ? "میلیون ریال" : "عدد"}
+                      activeItem={activeFilters.customer}
+                      onItemClick={(item) =>
+                        setActiveFilters((prev) => ({
+                          ...prev,
+                          customer:
+                            prev.customer?.id === item.id ? null : item,
+                        }))
+                      }
+                      activeFilters={activeFilters}
+                      filterType="customer"
                     />
                   </div>
                 </div>

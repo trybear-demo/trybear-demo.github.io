@@ -8,9 +8,16 @@ const RankingChart = ({
   color = "59, 130, 246", // RGB string
   icon: Icon = Trophy,
   unit = "میلیون ریال",
+  activeItem = null,
+  onItemClick = () => {},
+  activeFilters = {},
+  filterType = "seller", // "seller" or "customer"
 }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const maxVal = Math.max(...data.map((d) => d.netValue || d.value || 0));
+
+  // Check if this item is selected
+  const isItemSelected = (item) => activeItem && activeItem.id === item.id;
 
   return (
     <div
@@ -19,13 +26,18 @@ const RankingChart = ({
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-6 z-10 flex-shrink-0">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          <span
-            className="w-1 h-6 rounded-full"
-            style={{ backgroundColor: `rgb(${color})` }}
-          />
-          {title}
-        </h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <span
+              className="w-1 h-6 rounded-full"
+              style={{ backgroundColor: `rgb(${color})` }}
+            />
+            {title}
+          </h3>
+          <span className="text-xs text-gray-500 hidden lg:block">
+            (کلیک = فیلتر)
+          </span>
+        </div>
         <div className="p-2 bg-white/5 rounded-xl">
           <Icon size={20} className="text-gray-400" />
         </div>
@@ -37,6 +49,8 @@ const RankingChart = ({
           const displayValue = item.netValue ?? item.value ?? 0;
           const percent = maxVal > 0 ? (displayValue / maxVal) * 100 : 0;
           const isHovered = hoveredItem?.id === item.id;
+          const isSelected = isItemSelected(item);
+          const hasOtherSelected = activeItem && !isSelected;
 
           return (
             <motion.div
@@ -44,9 +58,16 @@ const RankingChart = ({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
-              className="group relative bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl p-3 flex items-center gap-4 transition-all"
+              className={`group relative border rounded-xl p-3 flex items-center gap-4 transition-all cursor-pointer
+                ${isSelected 
+                  ? `bg-white/15 border-2 ${filterType === 'seller' ? 'border-purple-500/50' : 'border-orange-500/50'}` 
+                  : hasOtherSelected 
+                    ? 'bg-white/2 border-white/5 opacity-40' 
+                    : 'bg-white/5 hover:bg-white/10 border-white/5'
+                }`}
               onMouseEnter={() => setHoveredItem(item)}
               onMouseLeave={() => setHoveredItem(null)}
+              onClick={() => onItemClick({ id: item.id, name: item.name })}
             >
               {/* Rank Badge */}
               <div

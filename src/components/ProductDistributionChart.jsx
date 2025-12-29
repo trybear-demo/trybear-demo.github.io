@@ -86,6 +86,9 @@ const ProductDistributionChart = ({
   color = "59, 130, 246",
   dateRange,
   mode = "amount",
+  activeProductGroup = null,
+  onProductGroupClick = () => {},
+  activeFilters = {},
 }) => {
   const [hoveredSlice, setHoveredSlice] = useState(null);
 
@@ -94,6 +97,10 @@ const ProductDistributionChart = ({
     () => generateProductData(companyId, dateRange, mode),
     [companyId, dateRange, mode]
   );
+
+  // Check if this product group is selected
+  const isProductSelected = (slice) =>
+    activeProductGroup && activeProductGroup.id === slice.id;
 
   // Distinct color palette for each product group
   const distinctColors = [
@@ -161,6 +168,9 @@ const ProductDistributionChart = ({
           />
           سهم از فروش گروه کالا
         </h3>
+        <span className="text-xs text-gray-500 hidden lg:block">
+          (کلیک = فیلتر)
+        </span>
       </div>
 
       <div className="relative flex-grow flex items-center justify-center">
@@ -168,25 +178,32 @@ const ProductDistributionChart = ({
           viewBox="-110 -110 220 220"
           className="w-full h-full max-w-[300px] overflow-visible"
         >
-          {data.map((slice, i) => (
-            <motion.path
-              key={slice.id}
-              d={getSlicePath(slice.startAngle, slice.endAngle)}
-              fill={colors[i]}
-              stroke="rgba(0,0,0,0.2)"
-              strokeWidth="1"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: hoveredSlice && hoveredSlice.id === slice.id ? 1.1 : 1,
-                opacity: hoveredSlice && hoveredSlice.id !== slice.id ? 0.5 : 1,
-              }}
-              transition={{ duration: 0.3 }}
-              onMouseEnter={() => setHoveredSlice(slice)}
-              onMouseLeave={() => setHoveredSlice(null)}
-              className="cursor-pointer"
-              style={{ transformOrigin: "0 0" }}
-            />
-          ))}
+          {data.map((slice, i) => {
+            const isSelected = isProductSelected(slice);
+            const hasOtherSelected = activeProductGroup && !isSelected;
+            const isHovered = hoveredSlice && hoveredSlice.id === slice.id;
+
+            return (
+              <motion.path
+                key={slice.id}
+                d={getSlicePath(slice.startAngle, slice.endAngle)}
+                fill={colors[i]}
+                stroke={isSelected ? "#fff" : "rgba(0,0,0,0.2)"}
+                strokeWidth={isSelected ? "3" : "1"}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: isHovered || isSelected ? 1.1 : 1,
+                  opacity: hasOtherSelected ? 0.3 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+                onMouseEnter={() => setHoveredSlice(slice)}
+                onMouseLeave={() => setHoveredSlice(null)}
+                onClick={() => onProductGroupClick({ id: slice.id, name: slice.name })}
+                className="cursor-pointer"
+                style={{ transformOrigin: "0 0" }}
+              />
+            );
+          })}
 
           {/* Center Text */}
           <g pointerEvents="none">
