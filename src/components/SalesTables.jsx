@@ -1113,6 +1113,364 @@ const CustomerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
   );
 };
 
+// Seller Sales Breakdown Table with Monthly Data and Growth Percentage
+const SellerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [filters, setFilters] = useState({});
+  const [activeFilterColumn, setActiveFilterColumn] = useState(null);
+
+  // Columns definition - only sellerName and unit are sortable/filterable
+  const staticColumns = [
+    { key: "sellerName", label: "نام فروشنده", sortable: true, filterable: true },
+    { key: "unit", label: "واحد کالا", sortable: true, filterable: true },
+  ];
+
+  // Get unique values for filter dropdowns
+  const getUniqueValues = useCallback((key) => {
+    const values = [...new Set(data.map((item) => item[key]))];
+    return values.sort();
+  }, [data]);
+
+  // Handle sorting - only for sellerName and unit
+  const handleSort = (key) => {
+    if (key !== "sellerName" && key !== "unit") return;
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  // Handle filter change
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => {
+      if (value === "" || value === null) {
+        const newFilters = { ...prev };
+        delete newFilters[key];
+        return newFilters;
+      }
+      return { ...prev, [key]: value };
+    });
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setFilters({});
+    setActiveFilterColumn(null);
+  };
+
+  // Processed data with filters and sorting
+  const processedData = useMemo(() => {
+    let result = [...data];
+
+    // Apply filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        result = result.filter((item) => {
+          const itemValue = String(item[key]).toLowerCase();
+          return itemValue.includes(String(value).toLowerCase());
+        });
+      }
+    });
+
+    // Apply sorting
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        const aVal = a[sortConfig.key];
+        const bVal = b[sortConfig.key];
+        const aStr = String(aVal || "");
+        const bStr = String(bVal || "");
+        return sortConfig.direction === "asc"
+          ? aStr.localeCompare(bStr, "fa")
+          : bStr.localeCompare(aStr, "fa");
+      });
+    }
+
+    return result;
+  }, [data, filters, sortConfig]);
+
+  const hasActiveFilters = Object.keys(filters).length > 0;
+
+  // Calculate growth percentage
+  const getGrowth = (current, previous) => {
+    if (previous === 0 || previous === "-" || !previous) {
+      if (current > 0 && current !== "-") return { value: 100, type: "up" };
+      return { value: 0, type: "neutral" };
+    }
+    const curr = typeof current === "number" ? current : parseFloat(String(current).replace(/[^0-9.-]/g, "")) || 0;
+    const prev = typeof previous === "number" ? previous : parseFloat(String(previous).replace(/[^0-9.-]/g, "")) || 0;
+    if (prev === 0) return { value: curr > 0 ? 100 : 0, type: curr > 0 ? "up" : "neutral" };
+    const growth = ((curr - prev) / prev) * 100;
+    return {
+      value: Math.abs(growth).toFixed(1),
+      type: growth > 0 ? "up" : growth < 0 ? "down" : "neutral",
+    };
+  };
+
+  // Show all 12 months
+  const displayedMonths = persianMonths.map((name, idx) => ({
+    index: idx,
+    name: name,
+  }));
+
+  return (
+    <div
+      className="w-full bg-[#060010] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl group/card min-h-[500px]"
+      style={{ "--glow-color": color }}
+    >
+      {/* Border Glow Effect */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{
+          background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(${color}, 0.15), transparent 40%)`,
+          zIndex: 0,
+        }}
+      />
+
+      {/* Header */}
+      <div className="relative z-10 flex flex-wrap justify-between items-center gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+            <Briefcase size={20} className="text-gray-300" />
+          </div>
+          <h3 className="text-lg font-bold text-white">جزئیات فروش به تفکیک فروشنده</h3>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 items-center">
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-sm hover:bg-red-500/30 transition-colors"
+            >
+              <X size={14} />
+              پاک کردن فیلترها
+            </button>
+          )}
+          <button className="p-2 rounded-lg hover:bg-white/10 text-gray-400 transition-colors">
+            <Download size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Active Filters Display */}
+      <AnimatePresence>
+        {hasActiveFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="relative z-10 flex flex-wrap gap-2 mb-4"
+          >
+            {Object.entries(filters).map(([key, value]) => {
+              const column = staticColumns.find((c) => c.key === key);
+              return (
+                <div
+                  key={key}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full text-purple-400 text-sm"
+                >
+                  <span>{column?.label}: {value}</span>
+                  <button
+                    onClick={() => handleFilterChange(key, null)}
+                    className="hover:bg-purple-500/30 rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Table Content */}
+      <div className="relative z-10 flex-grow overflow-auto custom-scrollbar">
+        <table className="w-full text-right border-collapse min-w-max">
+          <thead className="sticky top-0 bg-[#060010] z-20">
+            <tr>
+              {/* Static columns - sellerName and unit */}
+              {staticColumns.map((col) => (
+                <th
+                  key={col.key}
+                  className="pb-4 pt-2 px-4 text-gray-500 font-medium text-sm border-b border-white/10 whitespace-nowrap relative"
+                >
+                  <div className="flex items-center gap-2 justify-end">
+                    {/* Filter Button */}
+                    {col.filterable && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setActiveFilterColumn(activeFilterColumn === col.key ? null : col.key)}
+                          className={`p-1 rounded hover:bg-white/10 transition-colors ${
+                            filters[col.key] ? "text-purple-400" : "text-gray-500"
+                          }`}
+                        >
+                          <Filter size={12} />
+                        </button>
+
+                        {/* Filter Dropdown */}
+                        <AnimatePresence>
+                          {activeFilterColumn === col.key && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="absolute top-full right-0 mt-2 w-48 bg-[#111] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
+                            >
+                              <div className="p-2">
+                                <div className="relative">
+                                  <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                  <input
+                                    type="text"
+                                    placeholder="جستجو..."
+                                    value={filters[col.key] || ""}
+                                    onChange={(e) => handleFilterChange(col.key, e.target.value)}
+                                    className="w-full pr-9 pl-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50"
+                                  />
+                                </div>
+                              </div>
+                              <div className="max-h-48 overflow-auto border-t border-white/10">
+                                {getUniqueValues(col.key).slice(0, 10).map((value, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => {
+                                      handleFilterChange(col.key, value);
+                                      setActiveFilterColumn(null);
+                                    }}
+                                    className="w-full text-right px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-purple-400 transition-colors"
+                                  >
+                                    {value}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+
+                    {/* Column Label with Sort */}
+                    <button
+                      onClick={() => col.sortable && handleSort(col.key)}
+                      className={`flex items-center gap-1 transition-colors ${
+                        col.sortable ? "cursor-pointer hover:text-white" : ""
+                      }`}
+                    >
+                      <span>{col.label}</span>
+                      {col.sortable && (
+                        <div className="flex flex-col">
+                          <ChevronUp
+                            size={10}
+                            className={`-mb-1 ${
+                              sortConfig.key === col.key && sortConfig.direction === "asc"
+                                ? "text-purple-400"
+                                : "text-gray-600"
+                            }`}
+                          />
+                          <ChevronDown
+                            size={10}
+                            className={`-mt-1 ${
+                              sortConfig.key === col.key && sortConfig.direction === "desc"
+                                ? "text-purple-400"
+                                : "text-gray-600"
+                            }`}
+                          />
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                </th>
+              ))}
+
+              {/* Month columns - NOT sortable, NOT filterable */}
+              {displayedMonths.map((month) => (
+                <th
+                  key={month.index}
+                  className="pb-4 pt-2 px-3 text-gray-500 font-medium text-sm border-b border-white/10 whitespace-nowrap text-center min-w-[100px]"
+                >
+                  {month.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="text-sm text-gray-300">
+            {processedData.map((row, idx) => (
+              <motion.tr
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.02 }}
+                className="group hover:bg-white/5 transition-colors border-b border-white/5"
+              >
+                {/* Seller Name */}
+                <td className="py-4 px-4 whitespace-nowrap font-medium text-white">
+                  {row.sellerName}
+                </td>
+                {/* Unit */}
+                <td className="py-4 px-4 whitespace-nowrap text-gray-400">
+                  {row.unit}
+                </td>
+                {/* Month values with growth percentage */}
+                {displayedMonths.map((month, mIdx) => {
+                  const currentValue = row.monthlyData?.[month.index] || 0;
+                  const previousMonthIdx = month.index > 0 ? month.index - 1 : null;
+                  const previousValue = previousMonthIdx !== null ? row.monthlyData?.[previousMonthIdx] : null;
+                  const growth = previousValue !== null ? getGrowth(currentValue, previousValue) : null;
+
+                  return (
+                    <td key={month.index} className="py-3 px-3 whitespace-nowrap text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-mono">
+                          {currentValue === 0 ? "-" : currentValue.toLocaleString("fa-IR")}
+                        </span>
+                        {growth && mIdx > 0 && (
+                          <div
+                            className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded ${
+                              growth.type === "up"
+                                ? "bg-green-500/20 text-green-400"
+                                : growth.type === "down"
+                                ? "bg-red-500/20 text-red-400"
+                                : "bg-gray-500/20 text-gray-400"
+                            }`}
+                          >
+                            {growth.type === "up" ? (
+                              <TrendingUp size={10} />
+                            ) : growth.type === "down" ? (
+                              <TrendingDown size={10} />
+                            ) : (
+                              <Minus size={10} />
+                            )}
+                            <span>{growth.value}٪</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // Simple TableWrapper for other tabs (unchanged)
 const TableWrapper = ({ title, icon: Icon, columns, data, color = "255, 255, 255" }) => {
   return (
@@ -1322,20 +1680,28 @@ const SalesTables = ({ companyId, color, dateRange }) => {
       };
     });
 
-    // 4. Sales by Seller (Monthly)
-    const sellerSales = sellersNames.map((sel) => {
-      const row = { seller: sel };
-      let total = 0;
-      months.forEach((m) => {
-        const val = Math.floor(random() * 2500);
-        row[m] = val === 0 ? "-" : val.toLocaleString();
-        total += val;
-      });
-      row.total = total.toLocaleString();
-      return row;
+    // 4. Sales by Seller (Monthly) - NEW FORMAT with unit and monthly data array
+    const sellerSalesBreakdown = sellersNames.map((sel) => {
+      const sellerUnit = units[Math.floor(random() * units.length)];
+      const monthlyData = [];
+      let prevValue = Math.floor(random() * 2500) + 300; // Initial base value
+      
+      for (let i = 0; i < 12; i++) {
+        // Generate value with some variance from previous month
+        const variance = (random() - 0.5) * 0.5; // -25% to +25% variance
+        const newValue = Math.max(0, Math.floor(prevValue * (1 + variance)));
+        monthlyData.push(newValue);
+        prevValue = newValue || prevValue; // Keep previous if zero
+      }
+
+      return {
+        sellerName: sel,
+        unit: sellerUnit,
+        monthlyData: monthlyData,
+      };
     });
 
-    return { invoiceDetails, productBreakdown, customerSalesBreakdown, sellerSales };
+    return { invoiceDetails, productBreakdown, customerSalesBreakdown, sellerSalesBreakdown };
   }, [companyId, dateRange]);
 
   const tabs = [
@@ -1375,11 +1741,8 @@ const SalesTables = ({ companyId, color, dateRange }) => {
         );
       case "sellers":
         return (
-          <TableWrapper
-            title="فروش به تفکیک فروشنده"
-            icon={Briefcase}
-            columns={["نام فروشنده", ...monthCols]}
-            data={generateData.sellerSales}
+          <SellerSalesBreakdownTable
+            data={generateData.sellerSalesBreakdown}
             color={color}
           />
         );
