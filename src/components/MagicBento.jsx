@@ -440,8 +440,8 @@ const GlobalSpotlight = ({
 
 const BentoCardGrid = ({ children, gridRef }) => (
   <div
-    className="bento-section grid gap-2 p-3 max-w-[80rem] select-none relative mx-auto"
-    style={{ fontSize: "clamp(1rem, 0.9rem + 0.5vw, 1.5rem)" }}
+    className="bento-section grid gap-2 p-2 max-w-[80rem] select-none relative mx-auto"
+    style={{ fontSize: "clamp(0.9rem, 0.85rem + 0.4vw, 1.25rem)" }}
     ref={gridRef}
   >
     {children}
@@ -504,18 +504,21 @@ const MagicBento = ({
             grid-template-columns: 1fr;
             width: 100%;
             margin: 0 auto;
-            padding: 0.5rem;
+            padding: 0.25rem;
+            gap: 0.5rem;
           }
           
           @media (min-width: 600px) {
             .card-responsive {
               grid-template-columns: repeat(2, 1fr);
+              gap: 0.5rem;
             }
           }
           
           @media (min-width: 1024px) {
             .card-responsive {
               grid-template-columns: repeat(5, 1fr); /* Changed to 5 columns */
+              gap: 0.75rem;
             }
             
             /* Removed custom spanning for 4-col bento layout to make it a 5-col row */
@@ -592,7 +595,7 @@ const MagicBento = ({
             
             .card-responsive .card {
               width: 100%;
-              min-height: 180px;
+              min-height: 100px;
             }
           }
         `}
@@ -614,7 +617,7 @@ const MagicBento = ({
             // Use card-specific glow color if available, otherwise use global
             const cardGlowColor = card.glowColor || glowColor;
 
-            const baseClassName = `card flex flex-col justify-between relative aspect-[4/3] min-h-[200px] w-full max-w-full p-5 rounded-[20px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${
+            const baseClassName = `card flex flex-col justify-between relative min-h-[120px] w-full max-w-full p-4 rounded-[16px] border border-solid font-light overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)] ${
               enableBorderGlow ? "card--border-glow" : ""
             }`;
 
@@ -642,20 +645,20 @@ const MagicBento = ({
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}
                 >
-                  <div className="card__header flex flex-col gap-3 relative text-white h-full justify-between">
+                  <div className="card__header flex flex-col gap-1 relative text-white h-full justify-between">
                     {/* Icon at the top */}
                     {card.icon && (
-                      <div className="p-2 rounded-lg bg-white/5 w-fit border border-white/10">
+                      <div className="p-1.5 rounded-md bg-white/5 w-fit border border-white/10">
                         {card.icon}
                       </div>
                     )}
 
                     <div className="mt-auto">
-                      <span className="card__label text-sm text-gray-400 mb-1 block">
+                      <span className="card__label text-xs text-gray-400 block">
                         {card.label}
                       </span>
                       <h3
-                        className={`card__title font-bold text-2xl m-0 ${
+                        className={`card__title font-bold text-xl m-0 ${
                           textAutoHide ? "text-clamp-1" : ""
                         }`}
                       >
@@ -663,7 +666,7 @@ const MagicBento = ({
                       </h3>
                       {card.description && (
                         <p
-                          className={`card__description text-xs text-gray-500 mt-1 ${
+                          className={`card__description text-xs text-gray-500 ${
                             textAutoHide ? "text-clamp-2" : ""
                           }`}
                         >
@@ -791,20 +794,20 @@ const MagicBento = ({
                   el.addEventListener("click", handleClick);
                 }}
               >
-                <div className="card__header flex flex-col gap-3 relative text-white h-full justify-between">
+                <div className="card__header flex flex-col gap-1 relative text-white h-full justify-between">
                   {/* Icon at the top */}
                   {card.icon && (
-                    <div className="p-2 rounded-lg bg-white/5 w-fit border border-white/10">
+                    <div className="p-1.5 rounded-md bg-white/5 w-fit border border-white/10">
                       {card.icon}
                     </div>
                   )}
 
                   <div className="mt-auto">
-                    <span className="card__label text-sm text-gray-400 mb-1 block">
+                    <span className="card__label text-xs text-gray-400 block">
                       {card.label}
                     </span>
                     <h3
-                      className={`card__title font-bold text-2xl m-0 ${
+                      className={`card__title font-bold text-xl m-0 ${
                         textAutoHide ? "text-clamp-1" : ""
                       }`}
                     >
@@ -812,7 +815,7 @@ const MagicBento = ({
                     </h3>
                     {card.description && (
                       <p
-                        className={`card__description text-xs text-gray-500 mt-1 ${
+                        className={`card__description text-xs text-gray-500 ${
                           textAutoHide ? "text-clamp-2" : ""
                         }`}
                       >
