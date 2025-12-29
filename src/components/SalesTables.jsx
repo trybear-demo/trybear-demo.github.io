@@ -402,9 +402,6 @@ const ProductBreakdownTable = ({ data, color = "255, 255, 255" }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [filters, setFilters] = useState({});
   const [activeFilterColumn, setActiveFilterColumn] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(1404);
-  const [selectedMonths, setSelectedMonths] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]); // All months by default
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Columns definition - only productName and unit are sortable/filterable
   const staticColumns = [
@@ -443,27 +440,6 @@ const ProductBreakdownTable = ({ data, color = "255, 255, 255" }) => {
   const clearAllFilters = () => {
     setFilters({});
     setActiveFilterColumn(null);
-  };
-
-  // Toggle month selection
-  const toggleMonth = (monthIndex) => {
-    setSelectedMonths((prev) => {
-      if (prev.includes(monthIndex)) {
-        const newMonths = prev.filter((m) => m !== monthIndex);
-        return newMonths.length > 0 ? newMonths : [monthIndex]; // Keep at least one
-      } else {
-        return [...prev, monthIndex].sort((a, b) => a - b);
-      }
-    });
-  };
-
-  // Select range of months
-  const selectMonthRange = (start, end) => {
-    const range = [];
-    for (let i = start; i <= end; i++) {
-      range.push(i);
-    }
-    setSelectedMonths(range);
   };
 
   // Processed data with filters and sorting
@@ -514,10 +490,10 @@ const ProductBreakdownTable = ({ data, color = "255, 255, 255" }) => {
     };
   };
 
-  // Filter months based on selection
-  const displayedMonths = selectedMonths.map((idx) => ({
+  // Show all 12 months
+  const displayedMonths = persianMonths.map((name, idx) => ({
     index: idx,
-    name: persianMonths[idx],
+    name: name,
   }));
 
   return (
@@ -544,125 +520,6 @@ const ProductBreakdownTable = ({ data, color = "255, 255, 255" }) => {
         </div>
         
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Date Filter - Only 1 year, multi-month selection */}
-          <div className="relative z-[100]">
-            <button
-              onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-300 hover:bg-white/10 transition-colors"
-            >
-              <Calendar size={16} />
-              <span>سال {selectedYear.toLocaleString("fa-IR")}</span>
-              <span className="text-purple-400">({selectedMonths.length} ماه)</span>
-            </button>
-
-            <AnimatePresence>
-              {isDatePickerOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 mt-2 w-80 bg-[#111] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[200] p-4"
-                >
-                  {/* Year Selection - Only one year allowed */}
-                  <div className="mb-4">
-                    <label className="text-gray-400 text-sm mb-2 block">انتخاب سال (فقط یک سال)</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[1404, 1403, 1402, 1401, 1400].map((year) => (
-                        <button
-                          key={year}
-                          onClick={() => setSelectedYear(year)}
-                          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                            selectedYear === year
-                              ? "bg-purple-500 text-white"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
-                          }`}
-                        >
-                          {year.toLocaleString("fa-IR")}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Month Selection - Multiple allowed */}
-                  <div className="mb-4">
-                    <label className="text-gray-400 text-sm mb-2 block">انتخاب ماه‌ها</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {persianMonths.map((month, idx) => (
-                        <button
-                          key={month}
-                          onClick={() => toggleMonth(idx)}
-                          className={`px-2 py-1.5 rounded-lg text-xs transition-colors ${
-                            selectedMonths.includes(idx)
-                              ? "bg-purple-500 text-white"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
-                          }`}
-                        >
-                          {month}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quick Select Options */}
-                  <div className="border-t border-white/10 pt-3">
-                    <label className="text-gray-400 text-xs mb-2 block">انتخاب سریع</label>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => selectMonthRange(0, 5)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        ۶ ماه اول
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(6, 11)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        ۶ ماه دوم
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(0, 2)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        بهار
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(3, 5)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        تابستان
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(6, 8)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        پاییز
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(9, 11)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        زمستان
-                      </button>
-                      <button
-                        onClick={() => setSelectedMonths([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])}
-                        className="px-3 py-1 rounded-lg text-xs bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
-                      >
-                        همه ماه‌ها
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setIsDatePickerOpen(false)}
-                    className="mt-4 w-full py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition-colors"
-                  >
-                    تایید
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
@@ -903,9 +760,6 @@ const CustomerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [filters, setFilters] = useState({});
   const [activeFilterColumn, setActiveFilterColumn] = useState(null);
-  const [selectedYear, setSelectedYear] = useState(1404);
-  const [selectedMonths, setSelectedMonths] = useState([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]); // All months by default
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Columns definition - only customerName and unit are sortable/filterable
   const staticColumns = [
@@ -944,27 +798,6 @@ const CustomerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
   const clearAllFilters = () => {
     setFilters({});
     setActiveFilterColumn(null);
-  };
-
-  // Toggle month selection
-  const toggleMonth = (monthIndex) => {
-    setSelectedMonths((prev) => {
-      if (prev.includes(monthIndex)) {
-        const newMonths = prev.filter((m) => m !== monthIndex);
-        return newMonths.length > 0 ? newMonths : [monthIndex]; // Keep at least one
-      } else {
-        return [...prev, monthIndex].sort((a, b) => a - b);
-      }
-    });
-  };
-
-  // Select range of months
-  const selectMonthRange = (start, end) => {
-    const range = [];
-    for (let i = start; i <= end; i++) {
-      range.push(i);
-    }
-    setSelectedMonths(range);
   };
 
   // Processed data with filters and sorting
@@ -1015,10 +848,10 @@ const CustomerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
     };
   };
 
-  // Filter months based on selection
-  const displayedMonths = selectedMonths.map((idx) => ({
+  // Show all 12 months
+  const displayedMonths = persianMonths.map((name, idx) => ({
     index: idx,
-    name: persianMonths[idx],
+    name: name,
   }));
 
   return (
@@ -1045,125 +878,6 @@ const CustomerSalesBreakdownTable = ({ data, color = "255, 255, 255" }) => {
         </div>
         
         <div className="flex flex-wrap gap-2 items-center">
-          {/* Date Filter - Only 1 year, multi-month selection */}
-          <div className="relative z-[100]">
-            <button
-              onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-300 hover:bg-white/10 transition-colors"
-            >
-              <Calendar size={16} />
-              <span>سال {selectedYear.toLocaleString("fa-IR")}</span>
-              <span className="text-purple-400">({selectedMonths.length} ماه)</span>
-            </button>
-
-            <AnimatePresence>
-              {isDatePickerOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 mt-2 w-80 bg-[#111] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[200] p-4"
-                >
-                  {/* Year Selection - Only one year allowed */}
-                  <div className="mb-4">
-                    <label className="text-gray-400 text-sm mb-2 block">انتخاب سال (فقط یک سال)</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[1404, 1403, 1402, 1401, 1400].map((year) => (
-                        <button
-                          key={year}
-                          onClick={() => setSelectedYear(year)}
-                          className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                            selectedYear === year
-                              ? "bg-purple-500 text-white"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
-                          }`}
-                        >
-                          {year.toLocaleString("fa-IR")}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Month Selection - Multiple allowed */}
-                  <div className="mb-4">
-                    <label className="text-gray-400 text-sm mb-2 block">انتخاب ماه‌ها</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {persianMonths.map((month, idx) => (
-                        <button
-                          key={month}
-                          onClick={() => toggleMonth(idx)}
-                          className={`px-2 py-1.5 rounded-lg text-xs transition-colors ${
-                            selectedMonths.includes(idx)
-                              ? "bg-purple-500 text-white"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10"
-                          }`}
-                        >
-                          {month}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Quick Select Options */}
-                  <div className="border-t border-white/10 pt-3">
-                    <label className="text-gray-400 text-xs mb-2 block">انتخاب سریع</label>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => selectMonthRange(0, 5)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        ۶ ماه اول
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(6, 11)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        ۶ ماه دوم
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(0, 2)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        بهار
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(3, 5)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        تابستان
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(6, 8)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        پاییز
-                      </button>
-                      <button
-                        onClick={() => selectMonthRange(9, 11)}
-                        className="px-3 py-1 rounded-lg text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                      >
-                        زمستان
-                      </button>
-                      <button
-                        onClick={() => setSelectedMonths([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])}
-                        className="px-3 py-1 rounded-lg text-xs bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
-                      >
-                        همه ماه‌ها
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setIsDatePickerOpen(false)}
-                    className="mt-4 w-full py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 transition-colors"
-                  >
-                    تایید
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {hasActiveFilters && (
             <button
               onClick={clearAllFilters}
