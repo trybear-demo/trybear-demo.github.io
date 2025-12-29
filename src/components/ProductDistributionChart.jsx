@@ -93,10 +93,42 @@ const ProductDistributionChart = ({
   const [hoveredSlice, setHoveredSlice] = useState(null);
 
   // Update data when companyId or dateRange or mode changes
-  const data = useMemo(
+  const rawData = useMemo(
     () => generateProductData(companyId, dateRange, mode),
     [companyId, dateRange, mode]
   );
+
+  // Apply filters to data
+  const data = useMemo(() => {
+    const hasOtherFilters = activeFilters.month || activeFilters.seller || activeFilters.customer;
+    if (!hasOtherFilters) return rawData;
+    
+    // When other filters are active, reduce some values and recalculate percentages
+    const filterMod = 0.3 + Math.random() * 0.2;
+    let total = 0;
+    const filtered = rawData.map((item, i) => {
+      // Apply different modifiers to each item to change the distribution
+      const itemMod = filterMod * (0.5 + Math.sin(i * 1.5) * 0.5 + 0.5);
+      const newValue = Math.floor(item.value * itemMod);
+      total += newValue;
+      return { ...item, value: newValue };
+    });
+    
+    // Recalculate angles
+    let startAngle = 0;
+    return filtered.map(item => {
+      const percent = total > 0 ? item.value / total : 0;
+      const angle = percent * 360;
+      const res = {
+        ...item,
+        percent: (percent * 100).toFixed(1),
+        startAngle,
+        endAngle: startAngle + angle,
+      };
+      startAngle += angle;
+      return res;
+    }).sort((a, b) => b.value - a.value);
+  }, [rawData, activeFilters.month, activeFilters.seller, activeFilters.customer]);
 
   // Check if this product group is selected
   const isProductSelected = (slice) =>

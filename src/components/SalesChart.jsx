@@ -153,10 +153,26 @@ const SalesChart = ({
 }) => {
   const [hoveredBar, setHoveredBar] = useState(null);
 
-  const data = useMemo(
+  const rawData = useMemo(
     () => generateData(companyId, dateRange),
     [companyId, dateRange]
   );
+
+  // Apply filters to data (reduce values when other filters are active)
+  const data = useMemo(() => {
+    const hasOtherFilters = activeFilters.productGroup || activeFilters.seller || activeFilters.customer;
+    if (!hasOtherFilters) return rawData;
+    
+    // When other filters are active, reduce the values to simulate filtered data
+    const filterMod = 0.15 + Math.random() * 0.1;
+    return rawData.map(d => ({
+      ...d,
+      sales: Math.floor(d.sales * filterMod),
+      returns: Math.floor(d.returns * filterMod),
+      salesCount: Math.floor(d.salesCount * filterMod),
+      returnsCount: Math.floor(d.returnsCount * filterMod),
+    }));
+  }, [rawData, activeFilters.productGroup, activeFilters.seller, activeFilters.customer]);
 
   // Check if this month is selected
   const isMonthSelected = (d) =>

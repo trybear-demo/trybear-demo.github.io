@@ -14,7 +14,30 @@ const RankingChart = ({
   filterType = "seller", // "seller" or "customer"
 }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
-  const maxVal = Math.max(...data.map((d) => d.netValue || d.value || 0));
+  
+  // Apply filters to data
+  const filteredData = useMemo(() => {
+    // Check if any other filter (not this chart's type) is active
+    const hasMonthFilter = activeFilters.month;
+    const hasProductFilter = activeFilters.productGroup;
+    const hasOtherRankingFilter = filterType === "seller" ? activeFilters.customer : activeFilters.seller;
+    
+    if (!hasMonthFilter && !hasProductFilter && !hasOtherRankingFilter) return data;
+    
+    // Apply modifiers to simulate filtered data
+    const filterMod = 0.2 + Math.random() * 0.15;
+    return data.map((item, i) => {
+      const itemMod = filterMod * (0.7 + Math.sin(i * 2) * 0.3 + 0.3);
+      return {
+        ...item,
+        sales: Math.floor((item.sales || 0) * itemMod),
+        returns: Math.floor((item.returns || 0) * itemMod),
+        netValue: Math.floor((item.netValue || item.value || 0) * itemMod),
+      };
+    }).sort((a, b) => b.netValue - a.netValue);
+  }, [data, activeFilters.month, activeFilters.productGroup, activeFilters.seller, activeFilters.customer, filterType]);
+
+  const maxVal = Math.max(...filteredData.map((d) => d.netValue || d.value || 0));
 
   // Check if this item is selected
   const isItemSelected = (item) => activeItem && activeItem.id === item.id;
@@ -45,7 +68,7 @@ const RankingChart = ({
 
       {/* Scrollable List */}
       <div className="flex-grow overflow-y-auto pl-4 pr-1 custom-scrollbar space-y-3">
-        {data.map((item, index) => {
+        {filteredData.map((item, index) => {
           const displayValue = item.netValue ?? item.value ?? 0;
           const percent = maxVal > 0 ? (displayValue / maxVal) * 100 : 0;
           const isHovered = hoveredItem?.id === item.id;
