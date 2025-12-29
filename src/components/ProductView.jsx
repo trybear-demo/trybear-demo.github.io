@@ -4,17 +4,10 @@ import {
   ChevronDown,
   ArrowLeft,
   Calendar,
-  TrendingUp,
-  RotateCcw,
-  Percent,
-  FileText,
-  List,
   Briefcase,
   User,
   Coins,
   Hash,
-  ArrowUp,
-  ArrowDown,
   Table as TableIcon,
   Wallet,
   LayoutDashboard,
@@ -28,6 +21,7 @@ import FadeContent from "./FadeContent";
 import BlurText from "./BlurText";
 import ShinyText from "./ShinyText";
 import MagicBento from "./MagicBento";
+import SalesMetricCards from "./SalesMetricCards";
 import SalesChart from "./SalesChart";
 import ProductDistributionChart from "./ProductDistributionChart";
 import RankingChart from "./RankingChart";
@@ -398,73 +392,6 @@ const ProductView = () => {
     [selectedCompany.id, mode]
   );
 
-  // Metrics Data Structure for Bento
-  const metricsData = [
-    {
-      title: currentMetrics.card1.value,
-      description: currentMetrics.card1.desc,
-      label: currentMetrics.card1.label,
-      color: "#060010",
-      glowColor: "34, 197, 94", // Green
-      icon: <TrendingUp size={24} className="text-green-400" />,
-    },
-    {
-      title: currentMetrics.card2.value,
-      description: currentMetrics.card2.desc,
-      label: currentMetrics.card2.label,
-      color: "#060010",
-      glowColor: "239, 68, 68", // Red
-      icon: <RotateCcw size={24} className="text-red-400" />,
-    },
-    {
-      title: currentMetrics.card3.value,
-      description: currentMetrics.card3.desc,
-      label: currentMetrics.card3.label,
-      color: "#060010",
-      glowColor: "250, 204, 21", // Yellow
-      icon: <Percent size={24} className="text-yellow-400" />,
-    },
-    {
-      title: currentMetrics.card4.value,
-      description: currentMetrics.card4.desc,
-      label: currentMetrics.card4.label,
-      color: "#060010",
-      glowColor: currentMetrics.card4.isGrowth
-        ? currentMetrics.card4.positive
-          ? "34, 197, 94" // Green
-          : "239, 68, 68" // Red
-        : "59, 130, 246", // Blue
-      icon: currentMetrics.card4.isGrowth ? (
-        currentMetrics.card4.positive ? (
-          <ArrowUp size={24} className="text-green-400" />
-        ) : (
-          <ArrowDown size={24} className="text-red-400" />
-        )
-      ) : (
-        <FileText size={24} className="text-blue-400" />
-      ),
-    },
-    {
-      title: currentMetrics.card5.value,
-      description: currentMetrics.card5.desc,
-      label: currentMetrics.card5.label,
-      color: "#060010",
-      glowColor: currentMetrics.card5.isGrowth
-        ? currentMetrics.card5.positive
-          ? "34, 197, 94" // Green
-          : "239, 68, 68" // Red
-        : "168, 85, 247", // Purple
-      icon: currentMetrics.card5.isGrowth ? (
-        currentMetrics.card5.positive ? (
-          <ArrowUp size={24} className="text-green-400" />
-        ) : (
-          <ArrowDown size={24} className="text-red-400" />
-        )
-      ) : (
-        <List size={24} className="text-purple-400" />
-      ),
-    },
-  ];
 
   return (
     <div
@@ -841,20 +768,11 @@ const ProductView = () => {
               ) : (
                 /* Standard Bento & Charts Layout for Amount/Quantity Modes */
                 <div className="space-y-6">
-                  {/* Magic Bento Grid with Company Color - Displaying Metrics */}
+                  {/* Sales Metric Cards - P&L Style */}
                   <div dir="rtl" className="w-full">
-                    <MagicBento
-                      data={metricsData}
-                      textAutoHide={false}
-                      enableStars={false}
-                      enableSpotlight={true}
-                      enableBorderGlow={true}
-                      enableTilt={false}
-                      enableMagnetism={true}
-                      clickEffect={true}
-                      spotlightRadius={300}
-                      particleCount={8}
-                      glowColor={selectedCompany.color}
+                    <SalesMetricCards
+                      metrics={currentMetrics}
+                      companyColor={selectedCompany.color}
                     />
                   </div>
 
