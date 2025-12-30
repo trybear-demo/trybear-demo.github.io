@@ -39,6 +39,8 @@ const ProductView = () => {
   const [section, setSection] = useState("sales");
   // Sales View Mode: 'amount' | 'quantity' | 'details'
   const [mode, setMode] = useState("amount");
+  // Financial Sub-Page: 'balance' | 'profitloss'
+  const [financialPage, setFinancialPage] = useState("balance");
 
   // Mock Companies with Specific Colors and Logos
   const companies = [
@@ -482,25 +484,20 @@ const ProductView = () => {
               className="text-xl font-bold tracking-widest cursor-default hidden md:block"
             />
 
-            {/* Section Switcher (Sales vs Profit vs Financial) */}
+            {/* Section Switcher (Sales vs Financial) */}
             <div className="flex items-center p-0.5 bg-[#111] rounded-lg border border-white/10 relative">
               {/* Animated Background for Switcher */}
               <div
                 className={`absolute top-0.5 bottom-0.5 rounded-md bg-white/10 transition-all duration-300 ease-out`}
                 style={{
-                  width: "calc(33.333% - 4px)",
-                  right:
-                    section === "sales"
-                      ? "2px"
-                      : section === "profit"
-                      ? "calc(33.333% + 2px)"
-                      : "calc(66.666% + 2px)",
+                  width: "calc(50% - 4px)",
+                  right: section === "sales" ? "2px" : "calc(50% + 2px)",
                 }}
               />
 
               <button
                 onClick={() => setSection("sales")}
-                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
+                className={`relative z-10 flex-1 px-4 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
                   section === "sales"
                     ? "text-white"
                     : "text-gray-500 hover:text-gray-300"
@@ -512,21 +509,8 @@ const ProductView = () => {
                 <span>فروش</span>
               </button>
               <button
-                onClick={() => setSection("profit")}
-                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
-                  section === "profit"
-                    ? "text-white"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
-                onMouseEnter={() => setCursorVariant("button")}
-                onMouseLeave={() => setCursorVariant("default")}
-              >
-                <PieChart size={14} />
-                <span>سود و زیان</span>
-              </button>
-              <button
                 onClick={() => setSection("financial")}
-                className={`relative z-10 flex-1 px-3 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
+                className={`relative z-10 flex-1 px-4 py-1 rounded-md text-xs font-bold flex items-center justify-center gap-1.5 transition-colors duration-300 ${
                   section === "financial"
                     ? "text-white"
                     : "text-gray-500 hover:text-gray-300"
@@ -537,6 +521,44 @@ const ProductView = () => {
                 <Wallet size={14} />
                 <span>مالی</span>
               </button>
+            </div>
+
+            {/* Sub-Controls: Financial Pages (Only visible if section === 'financial') */}
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                section === "financial"
+                  ? "max-h-16 opacity-100"
+                  : "max-h-0 opacity-0"
+              }`}
+            >
+              <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10 mt-1">
+                <button
+                  onClick={() => setFinancialPage("balance")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
+                    financialPage === "balance"
+                      ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                  onMouseEnter={() => setCursorVariant("button")}
+                  onMouseLeave={() => setCursorVariant("default")}
+                >
+                  <Wallet size={14} />
+                  <span>ترازنامه</span>
+                </button>
+                <button
+                  onClick={() => setFinancialPage("profitloss")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
+                    financialPage === "profitloss"
+                      ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                  onMouseEnter={() => setCursorVariant("button")}
+                  onMouseLeave={() => setCursorVariant("default")}
+                >
+                  <PieChart size={14} />
+                  <span>صورت سود و زیان</span>
+                </button>
+              </div>
             </div>
 
             {/* Sub-Controls: Sales Modes (Only visible if section === 'sales') */}
@@ -731,7 +753,7 @@ const ProductView = () => {
 
         {/* Key prop ensures component remounts/animates when company changes or mode changes */}
         <FadeContent
-          key={`${selectedCompany.id}-${section}-${mode}`}
+          key={`${selectedCompany.id}-${section}-${mode}-${financialPage}`}
           blur={true}
           duration={1000}
           delay={200}
@@ -740,19 +762,19 @@ const ProductView = () => {
           {/* Main Section Switcher Logic */}
           {section === "financial" ? (
             <div dir="rtl" className="w-full">
-              <FinancialTables
-                companyId={selectedCompany.id}
-                color={selectedCompany.color}
-                dateRange={dateRange}
-              />
-            </div>
-          ) : section === "profit" ? (
-            <div dir="rtl" className="w-full">
-              <ProfitLossContent
-                companyId={selectedCompany.id}
-                color={selectedCompany.color}
-                dateRange={dateRange}
-              />
+              {financialPage === "balance" ? (
+                <FinancialTables
+                  companyId={selectedCompany.id}
+                  color={selectedCompany.color}
+                  dateRange={dateRange}
+                />
+              ) : (
+                <ProfitLossContent
+                  companyId={selectedCompany.id}
+                  color={selectedCompany.color}
+                  dateRange={dateRange}
+                />
+              )}
             </div>
           ) : (
             /* SALES SECTION CONTENT */
