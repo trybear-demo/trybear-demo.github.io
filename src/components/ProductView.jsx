@@ -14,6 +14,7 @@ import {
   PieChart,
   X,
   Filter,
+  CreditCard,
 } from "lucide-react";
 import { LanguageContext } from "../context/LanguageContext";
 import { useCursor } from "../context/CursorContext";
@@ -28,6 +29,7 @@ import RankingChart from "./RankingChart";
 import SalesTables from "./SalesTables";
 import FinancialTables from "./FinancialTables";
 import ProfitLossContent from "./ProfitLossContent";
+import ChecksContent from "./ChecksContent";
 
 const ProductView = () => {
   const { id } = useParams();
@@ -39,7 +41,7 @@ const ProductView = () => {
   const [section, setSection] = useState("sales");
   // Sales View Mode: 'amount' | 'quantity' | 'details'
   const [mode, setMode] = useState("amount");
-  // Financial Sub-Page: 'balance' | 'profitloss'
+  // Financial Sub-Page: 'balance' | 'profitloss' | 'checks'
   const [financialPage, setFinancialPage] = useState("balance");
 
   // Mock Companies with Specific Colors and Logos
@@ -558,6 +560,19 @@ const ProductView = () => {
                   <PieChart size={14} />
                   <span>صورت سود و زیان</span>
                 </button>
+                <button
+                  onClick={() => setFinancialPage("checks")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
+                    financialPage === "checks"
+                      ? "bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                  onMouseEnter={() => setCursorVariant("button")}
+                  onMouseLeave={() => setCursorVariant("default")}
+                >
+                  <CreditCard size={14} />
+                  <span>مدیریت چک‌ها</span>
+                </button>
               </div>
             </div>
 
@@ -768,11 +783,16 @@ const ProductView = () => {
                   color={selectedCompany.color}
                   dateRange={dateRange}
                 />
-              ) : (
+              ) : financialPage === "profitloss" ? (
                 <ProfitLossContent
                   companyId={selectedCompany.id}
                   color={selectedCompany.color}
                   dateRange={dateRange}
+                />
+              ) : (
+                <ChecksContent
+                  companyId={selectedCompany.id}
+                  color={selectedCompany.color}
                 />
               )}
             </div>
